@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
+using UI;
 using UnityEngine;
 
 public class GameController : MonoBehaviour {
@@ -28,13 +27,11 @@ public class GameController : MonoBehaviour {
     public KeyCode PlaceObject = KeyCode.Mouse0;
     public KeyCode ContinuousPlace = KeyCode.Mouse1;
     
-    
     //In both edit modes
     public KeyCode RotateLeft = KeyCode.Z;
     public KeyCode RotateRight = KeyCode.X;
     public KeyCode RotateUp = KeyCode.C;
     public KeyCode RotateDown = KeyCode.V;
-    
     public KeyCode ScaleUpUniform = KeyCode.RightBracket;
     public KeyCode ScaleDownUniform = KeyCode.LeftBracket;
     public KeyCode ScaleUpX = KeyCode.U;
@@ -43,24 +40,30 @@ public class GameController : MonoBehaviour {
     public KeyCode ScaleDownX = KeyCode.J;
     public KeyCode ScaleDownY = KeyCode.K;
     public KeyCode ScaleDownZ = KeyCode.L;
-
-
-
-        //Objects we need access to
+    public KeyCode TogglePhysics = KeyCode.P;
+    
+    //Objects we need access to
     [SerializeField] private Material editMaterial;
     [SerializeField] private GameObject selectionPanel;
     [SerializeField] private ItemPanelController itemInfoPanel;
     [SerializeField] private TextMeshProUGUI snapInfoPanel;
+    [SerializeField] private TextMeshProUGUI physicsInfoPanel;
 
-    private bool _isSelecting = false;
-    private bool _snapEnabled = false;
-    private bool _editingObject = false;
-    private bool mouseLocked = true;
+    private bool _isSelecting;
+    private bool _snapEnabled;
+    private bool _editingObject;
+    private bool _mouseLocked = true;
+    private bool _enablePhysicsOnPlace;
     
     private Vector3 _selectedStartPos;
     private Vector3 _selectedStartRot;
     private Vector3 _selectedStartScale;
     private Material _selectedStartMat;
+    private Camera _camera;
+
+    private void Awake() {
+        _camera = Camera.main;
+    }
 
     void Update() {
         if (Input.GetKeyDown(OpenSelection)) {
@@ -73,31 +76,25 @@ public class GameController : MonoBehaviour {
             _snapEnabled = !_snapEnabled;
             snapInfoPanel.SetText(_snapEnabled ? "Enabled" : "Disabled");
         }
-
-        if (Input.GetKeyDown(FreeMouse)) {
-            Cursor.lockState = mouseLocked ? CursorLockMode.Confined : CursorLockMode.Locked;
-            mouseLocked = !mouseLocked;
+        
+        if (Input.GetKeyDown(TogglePhysics)) {
+            _enablePhysicsOnPlace = !_enablePhysicsOnPlace;
+            physicsInfoPanel.SetText(_enablePhysicsOnPlace ? "Enabled" : "Disabled");
         }
 
-        
+        if (Input.GetKeyDown(FreeMouse)) {
+            Cursor.lockState = _mouseLocked ? CursorLockMode.Confined : CursorLockMode.Locked;
+            Time.timeScale = _mouseLocked ? 0.0f : 1.0f;
+            _mouseLocked = !_mouseLocked;
+            itemInfoPanel.ToggleMouse();
+        }
+
         if (heldObject != null) {
             PlaceNewObject();
-            
-        //We have selected an existing object in the world to edit    
         } else if (selectedObject != null) {
             HandleSelectedObject();
-            
-        //We have no current object interactions, and can select an object.    
         } else {
-            if (Input.GetKeyDown(MakeSelection)) {
-                int layerMask = 1 << 7; //only target ground layers and existing placed objects
-            
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layerMask)) {
-                    Debug.Log("Hit: " + hit.transform.gameObject.name);
-                    SetSelectedObject(hit.transform.gameObject);
-                }
-            }
+            SelectObject();
         }
     }
 
@@ -109,7 +106,7 @@ public class GameController : MonoBehaviour {
         Quaternion transformRotation = heldObject.transform.rotation;
         int layerMask = (1 << 6) | (1 << 7); //only target ground layers and existing placed objects
             
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layerMask)) {
             Vector3 pos = new Vector3(hit.point.x, hit.point.y + (heldObject.transform.localScale.y/2), hit.point.z);
 
@@ -124,7 +121,7 @@ public class GameController : MonoBehaviour {
                 placed.name = heldObject.name;
                 placed.transform.parent = parentObject.transform;
                 placed.layer = 7;
-                placed.GetComponent<PlaceableObject>().SetPlaced(MaterialsRegistry.Instance.GetMaterial(0));
+                placed.GetComponent<PlaceableObject>().SetPlaced(MaterialsRegistry.Instance.GetMaterial(0), _enablePhysicsOnPlace);
                 if (Input.GetKeyDown(PlaceObject) || _editingObject) {
                     Destroy(heldObject);
                     heldObject = null;
@@ -138,7 +135,7 @@ public class GameController : MonoBehaviour {
                 heldObject.transform.position = _selectedStartPos;
                 heldObject.transform.eulerAngles = _selectedStartRot;
                 heldObject.transform.localScale = _selectedStartScale;
-                heldObject.GetComponent<PlaceableObject>().SetPlaced(_selectedStartMat);
+                heldObject.GetComponent<PlaceableObject>().SetPlaced(_selectedStartMat, _enablePhysicsOnPlace);
             } else {
                 Destroy(heldObject);
             }
@@ -147,6 +144,7 @@ public class GameController : MonoBehaviour {
         }
     }
 
+    //We have selected an existing object in the world to edit
     private void HandleSelectedObject() {
         itemInfoPanel.UpdatePanel(selectedObject);
 
@@ -162,22 +160,44 @@ public class GameController : MonoBehaviour {
         if (Input.GetKeyDown(DeleteSelection)) {
             Destroy(selectedObject);
             _editingObject = false;
+            itemInfoPanel.gameObject.SetActive(false);
+            return;
         }
 
         if (Input.GetKeyDown(CancelSelection)) {
             selectedObject.transform.position = _selectedStartPos;
             selectedObject.transform.eulerAngles = _selectedStartRot;
             selectedObject.transform.localScale = _selectedStartScale;
-            selectedObject.GetComponent<PlaceableObject>().SetPlaced(_selectedStartMat);
+            selectedObject.GetComponent<PlaceableObject>().SetPlaced(_selectedStartMat, _enablePhysicsOnPlace);
             selectedObject = null;
             itemInfoPanel.gameObject.SetActive(false);
+            return;
         }
 
-        if ((Input.GetKeyDown(ConfirmSelection) && mouseLocked) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) {
-            selectedObject.GetComponent<PlaceableObject>().SetPlaced(_selectedStartMat);
+        if ((Input.GetKeyDown(ConfirmSelection) && _mouseLocked) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) {
+            selectedObject.GetComponent<PlaceableObject>().SetPlaced(_selectedStartMat, _enablePhysicsOnPlace);
             selectedObject = null;
             itemInfoPanel.gameObject.SetActive(false);
             Cursor.lockState = CursorLockMode.Locked;
+        }
+    }
+
+    //We have no current object interactions, and can select an object.    
+    private void SelectObject() {
+        if (Input.GetKeyDown(MakeSelection)) {
+            int layerMask = 1 << 7; //only target ground layers and existing placed objects
+            
+            Ray ray = _camera.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layerMask)) {
+                heldObject = null;
+                GameObject selected = hit.transform.gameObject;
+                selectedObject = selected;
+                _selectedStartPos = selected.transform.position;
+                _selectedStartRot = selected.transform.eulerAngles;
+                _selectedStartScale = selected.transform.localScale;
+                _selectedStartMat = selected.GetComponent<PlaceableObject>().GetMaterial();
+                itemInfoPanel.gameObject.SetActive(true);
+            }
         }
     }
 
@@ -235,7 +255,7 @@ public class GameController : MonoBehaviour {
     }
 
     //Close the selection panel from other places, e.g. when we've selected an item from the UI we can close it.
-    public void ToggleSelPanel(bool open) {
+    private void ToggleSelPanel(bool open) {
         _isSelecting = open;
         selectionPanel.SetActive(open);
         Cursor.lockState = open ? CursorLockMode.Confined : CursorLockMode.Locked;
@@ -246,15 +266,5 @@ public class GameController : MonoBehaviour {
         heldObject = Instantiate(heldIn);
         heldObject.name = heldIn.name;
         selectedObject = null;
-    }
-
-    public void SetSelectedObject(GameObject selected) {
-        heldObject = null;
-        selectedObject = selected;
-        _selectedStartPos = selected.transform.position;
-        _selectedStartRot = selected.transform.eulerAngles;
-        _selectedStartScale = selected.transform.localScale;
-        _selectedStartMat = selected.GetComponent<PlaceableObject>().GetMaterial();
-        itemInfoPanel.gameObject.SetActive(true);
     }
 }

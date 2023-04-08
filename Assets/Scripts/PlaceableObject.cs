@@ -24,16 +24,22 @@ public class PlaceableObject : MonoBehaviour {
         return subObjects[0].GetComponent<Renderer>().material; //Use the first sub-object instead.
     }
 
-    public void SetPlaced(Material material) {
+    public void SetPlaced(Material material, bool physics) {
+        gameObject.GetComponent<Rigidbody>().isKinematic = !physics; //Invert, because if physics is false then kinematic is true.
+        if (gameObject.GetComponent<Collider>() != null) {
+            gameObject.GetComponent<Collider>().enabled = true;
+        }
         gameObject.layer = 7;
         for (int i = 0; i < subObjects.Length; i++) {
             subObjects[i].layer = 7;
+            subObjects[i].GetComponent<Collider>().enabled = true;
         }
         SetMaterial(material);
     }
 
     public void SetPickedUp(Material material) {
         gameObject.layer = 0;
+        gameObject.GetComponent<Collider>().enabled = false;
         for (int i = 0; i < subObjects.Length; i++) {
             subObjects[i].layer = 0;
         }

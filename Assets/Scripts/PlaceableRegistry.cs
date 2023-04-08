@@ -26,11 +26,6 @@ public class PlaceableRegistry : MonoBehaviour {
 	}
     
     public void SetHeldObject(int id) {
-	    Debug.Log("Setting held object to " + id);
 	    controller.SetHeldObject(placeables[id]);
-    }
-
-    public void SetSelectedObject(GameObject selected) {
-	    controller.SetSelectedObject(selected);
     }
 }
