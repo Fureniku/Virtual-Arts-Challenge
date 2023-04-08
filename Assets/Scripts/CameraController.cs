@@ -32,12 +32,16 @@ public class CameraController : MonoBehaviour {
     }
 
     private void Update() {
-        HandleMouseRotation();
+        if (Cursor.lockState == CursorLockMode.Locked) {
+            HandleMouseRotation();
+        }
     }
     
     private void FixedUpdate() {
         if (Cursor.lockState == CursorLockMode.Locked) {
             HandleKeyInput();
+        } else {
+            _moveSpeed = Vector3.zero;
         }
 
         // clamp the move speed
