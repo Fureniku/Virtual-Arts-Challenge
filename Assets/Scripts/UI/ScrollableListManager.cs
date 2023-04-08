@@ -22,7 +22,7 @@ public class ScrollableListManager : MonoBehaviour {
 
     //Render a screenshot of the prefab in question
     private Image GenerateImage(Image buttonImg, GameObject go) {
-        GameObject prefabToRender = Instantiate(go, new Vector3(0, 0.5f, 0), Quaternion.identity);
+        GameObject prefabToRender = Instantiate(go, new Vector3(0, 0.5f, 0), go.transform.rotation);
         prefabToRender.GetComponent<PlaceableObject>().SetMaterial(MaterialsRegistry.Instance.GetMaterial(0));
         int imageSize = 256;
         // Create a new camera and position it to frame the prefab

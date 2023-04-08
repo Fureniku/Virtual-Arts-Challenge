@@ -7,6 +7,7 @@ public class GameController : MonoBehaviour {
 
     [SerializeField] private GameObject heldObject;
     [SerializeField] private GameObject selectedObject;
+    [SerializeField] private GameObject parentObject;
     
     //General non-movement controls
     public KeyCode SnapMode = KeyCode.F;
@@ -121,8 +122,9 @@ public class GameController : MonoBehaviour {
             if (Input.GetKeyDown(PlaceObject) || Input.GetKeyDown(ContinuousPlace)) {
                 GameObject placed = Instantiate(heldObject, pos, transformRotation);
                 placed.name = heldObject.name;
+                placed.transform.parent = parentObject.transform;
                 placed.layer = 7;
-                placed.GetComponent<PlaceableObject>().SetMaterial(MaterialsRegistry.Instance.GetMaterial(0));
+                placed.GetComponent<PlaceableObject>().SetPlaced(MaterialsRegistry.Instance.GetMaterial(0));
                 if (Input.GetKeyDown(PlaceObject) || _editingObject) {
                     Destroy(heldObject);
                     heldObject = null;
@@ -136,8 +138,7 @@ public class GameController : MonoBehaviour {
                 heldObject.transform.position = _selectedStartPos;
                 heldObject.transform.eulerAngles = _selectedStartRot;
                 heldObject.transform.localScale = _selectedStartScale;
-                heldObject.GetComponent<PlaceableObject>().SetMaterial(_selectedStartMat);
-                heldObject.layer = 7;
+                heldObject.GetComponent<PlaceableObject>().SetPlaced(_selectedStartMat);
             } else {
                 Destroy(heldObject);
             }
@@ -151,8 +152,7 @@ public class GameController : MonoBehaviour {
 
         HandleKeyRotation(selectedObject);
         HandleKeyScaling(selectedObject);
-        selectedObject.GetComponent<PlaceableObject>().SetMaterial(editMaterial);
-        selectedObject.layer = 0;
+        selectedObject.GetComponent<PlaceableObject>().SetPickedUp(editMaterial);
         if (Input.GetKeyDown(EditSelection)) {
             heldObject = selectedObject;
             selectedObject = null;
@@ -168,15 +168,13 @@ public class GameController : MonoBehaviour {
             selectedObject.transform.position = _selectedStartPos;
             selectedObject.transform.eulerAngles = _selectedStartRot;
             selectedObject.transform.localScale = _selectedStartScale;
-            selectedObject.GetComponent<PlaceableObject>().SetMaterial(_selectedStartMat);
-            selectedObject.layer = 7;
+            selectedObject.GetComponent<PlaceableObject>().SetPlaced(_selectedStartMat);
             selectedObject = null;
             itemInfoPanel.gameObject.SetActive(false);
         }
 
         if ((Input.GetKeyDown(ConfirmSelection) && mouseLocked) || Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)) {
-            selectedObject.GetComponent<PlaceableObject>().SetMaterial(_selectedStartMat);
-            selectedObject.layer = 7;
+            selectedObject.GetComponent<PlaceableObject>().SetPlaced(_selectedStartMat);
             selectedObject = null;
             itemInfoPanel.gameObject.SetActive(false);
             Cursor.lockState = CursorLockMode.Locked;
@@ -202,24 +200,25 @@ public class GameController : MonoBehaviour {
     }
 
     private void HandleKeyScaling(GameObject go) {
-        if (go != null) {
-            Vector3 scale = go.transform.localScale;
-            float mod = 0.01f; //How much to change by
-            if (Input.GetKey(ScaleUpUniform)) { go.transform.localScale = new Vector3(scale.x+mod, scale.y+mod, scale.z+mod); }
-            if (Input.GetKey(ScaleDownUniform)) { go.transform.localScale = new Vector3(scale.x-mod, scale.y-mod, scale.z-mod); }
+        Vector3 scale = go.transform.localScale;
+        float mod = 0.01f; //How much to change by
         
-            if (Input.GetKey(ScaleUpX)) { go.transform.localScale = new Vector3(scale.x+mod, scale.y, scale.z); }
-            if (Input.GetKey(ScaleUpY)) { go.transform.localScale = new Vector3(scale.x, scale.y+mod, scale.z); }
-            if (Input.GetKey(ScaleUpZ)) { go.transform.localScale = new Vector3(scale.x, scale.y, scale.z+mod); }
+        if (Input.GetKey(ScaleUpUniform)) { scale.x += mod; scale.y += mod; scale.z += mod; }
+        if (Input.GetKey(ScaleDownUniform)) { scale.x -= mod; scale.y -= mod; scale.z -= mod; }
+    
+        if (Input.GetKey(ScaleUpX)) { scale.x += mod; }
+        if (Input.GetKey(ScaleUpY)) { scale.y += mod; }
+        if (Input.GetKey(ScaleUpZ)) { scale.z += mod; }
+    
+        if (Input.GetKey(ScaleDownX)) { scale.x -= mod; }
+        if (Input.GetKey(ScaleDownY)) { scale.y -= mod; }
+        if (Input.GetKey(ScaleDownZ)) { scale.z -= mod; }
+
+        if (scale.x < 0.1f) { scale.x = 0.1f; }
+        if (scale.y < 0.1f) { scale.y = 0.1f; }
+        if (scale.z < 0.1f) { scale.z = 0.1f; }
         
-            if (Input.GetKey(ScaleDownX)) { go.transform.localScale = new Vector3(scale.x-mod, scale.y, scale.z); }
-            if (Input.GetKey(ScaleDownY)) { go.transform.localScale = new Vector3(scale.x, scale.y-mod, scale.z); }
-            if (Input.GetKey(ScaleDownZ)) { go.transform.localScale = new Vector3(scale.x, scale.y, scale.z-mod); }
-        }
-        else {
-            Debug.LogWarning("why is it null in handlekeyscaling uh oh");
-        }
-        
+        go.transform.localScale = new Vector3(scale.x, scale.y, scale.z);
     }
 
     //Apply changes from the UI menu

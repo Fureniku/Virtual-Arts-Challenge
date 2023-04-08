@@ -23,4 +23,20 @@ public class PlaceableObject : MonoBehaviour {
         }
         return subObjects[0].GetComponent<Renderer>().material; //Use the first sub-object instead.
     }
+
+    public void SetPlaced(Material material) {
+        gameObject.layer = 7;
+        for (int i = 0; i < subObjects.Length; i++) {
+            subObjects[i].layer = 7;
+        }
+        SetMaterial(material);
+    }
+
+    public void SetPickedUp(Material material) {
+        gameObject.layer = 0;
+        for (int i = 0; i < subObjects.Length; i++) {
+            subObjects[i].layer = 0;
+        }
+        SetMaterial(material);
+    }
 }
