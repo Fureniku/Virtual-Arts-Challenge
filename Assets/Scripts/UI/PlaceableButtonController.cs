@@ -23,4 +23,8 @@ public class PlaceableButtonController : MonoBehaviour {
     public void SetImage(Image imageIn) {
         image.sprite = imageIn.sprite;
     }
+
+    public void GenerateItem() {
+        PlaceableRegistry.Instance.SetHeldObject(id);
+    }
 }
