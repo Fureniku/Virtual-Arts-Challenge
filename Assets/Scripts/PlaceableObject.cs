@@ -25,7 +25,9 @@ public class PlaceableObject : MonoBehaviour {
     }
 
     public void SetPlaced(Material material, bool physics) {
-        gameObject.GetComponent<Rigidbody>().isKinematic = !physics; //Invert, because if physics is false then kinematic is true.
+        if (gameObject.GetComponent<Rigidbody>() != null) {
+            gameObject.GetComponent<Rigidbody>().isKinematic = !physics; //Invert, because if physics is false then kinematic is true.
+        }
         if (gameObject.GetComponent<Collider>() != null) {
             gameObject.GetComponent<Collider>().enabled = true;
         }
@@ -39,7 +41,9 @@ public class PlaceableObject : MonoBehaviour {
 
     public void SetPickedUp(Material material) {
         gameObject.layer = 0;
-        gameObject.GetComponent<Collider>().enabled = false;
+        if (gameObject.GetComponent<Collider>() != null) {
+            gameObject.GetComponent<Collider>().enabled = false;
+        }
         for (int i = 0; i < subObjects.Length; i++) {
             subObjects[i].layer = 0;
         }

@@ -191,6 +191,12 @@ public class GameController : MonoBehaviour {
             if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, layerMask)) {
                 heldObject = null;
                 GameObject selected = hit.transform.gameObject;
+                
+                //If we've clicked just part of the whole object, get the objects parent.
+                if (selected.GetComponent<PlaceableChild>() != null) {
+                    selected = selected.GetComponent<PlaceableChild>().GetParent();
+                }
+
                 selectedObject = selected;
                 _selectedStartPos = selected.transform.position;
                 _selectedStartRot = selected.transform.eulerAngles;
