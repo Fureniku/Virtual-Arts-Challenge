@@ -16,38 +16,38 @@ The project was made with Unity 2021.3.21f1. Import the project into Unity and i
 
 ## Controls
 
-***General controls***
-**WASD:** Movement (Mouse to aim)
-**Space:** ascend
-**Left Control:** descend
-**Left shift:** sprint
-**Left alt:** Toggle mouse lock
-**F2:** Switch between flying free-cam and first person player cam
-**F:** toggle snapping for all object placement/edit modes
-**P:** toggle physics enabled for object placement. Does not affect existing objects.
+***General controls***  
+**WASD:** Movement (Mouse to aim)  
+**Space:** ascend / jump  
+**Left Control:** descend  
+**Left shift:** sprint  
+**Left alt:** Toggle mouse lock  
+**F2:** Switch between flying free-cam and first person player cam  
+**F:** toggle snapping for all object placement/edit modes  
+**P:** toggle physics enabled for object placement. Does not affect existing objects.  
 
-***With no objects selected***
-**Q:** open object selection screen
-**Mouse 1:** Select the object you’re aiming at
+***With no objects selected***  
+**Q:** open object selection screen  
+**Mouse 1:** Select the object you’re aiming at  
 
-***When creating a new object***
-**Mouse 1:** Place the object and stop
-**Mouse 2:** Place the object, with the option to place more.
+***When creating a new object***  
+**Mouse 1:** Place the object and stop  
+**Mouse 2:** Place the object, with the option to place more.  
 
-***When an existing object is selected***
-**Mouse 1:** Confirm and finish changes (only when mouse is locked to screen)
-**E:** Pick up and move the object
-**Enter:** Confirm and finish changes
-**Delete:** Delete the object
-**Escape:** Cancel changes and revert object to original location
+***When an existing object is selected***  
+**Mouse 1:** Confirm and finish changes (only when mouse is locked to screen)  
+**E:** Pick up and move the object  
+**Enter:** Confirm and finish changes  
+**Delete:** Delete the object  
+**Escape:** Cancel changes and revert object to original location  
 
-When either creating a new or editing an existing object
-Z / X: Rotate horizontally (Slowly by default, snapping 45 degrees with snap enabled)
-C / V: Rotate vertically
-[ / ]: Scale the object up or down uniformly
-U / J: Scale X
-I / K: Scale Y
-O / L: Scale Z
+***When either creating a new or editing an existing object***  
+**Z / X:** Rotate horizontally (Slowly by default, snapping 45 degrees with snap enabled)  
+**C / V:** Rotate vertically  
+**[ / ]:** Scale the object up or down uniformly  
+**U / J:** Scale X  
+**I / K:** Scale Y  
+**O / L:** Scale Z  
 
 ## A note on physics
 
