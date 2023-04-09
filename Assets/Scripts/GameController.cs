@@ -11,6 +11,7 @@ public class GameController : MonoBehaviour {
     //General non-movement controls
     public KeyCode SnapMode = KeyCode.F;
     public KeyCode FreeMouse = KeyCode.LeftAlt;
+    public KeyCode PlayerType = KeyCode.F2;
     
     //When something isn't selected
     public KeyCode OpenSelection = KeyCode.Q;
@@ -46,14 +47,23 @@ public class GameController : MonoBehaviour {
     [SerializeField] private Material editMaterial;
     [SerializeField] private GameObject selectionPanel;
     [SerializeField] private ItemPanelController itemInfoPanel;
+    [SerializeField] private TextMeshProUGUI cameraInfoPanel;
+    [SerializeField] private TextMeshProUGUI mouseInfoPanel;
     [SerializeField] private TextMeshProUGUI snapInfoPanel;
     [SerializeField] private TextMeshProUGUI physicsInfoPanel;
+    [SerializeField] private GameObject controlsBasePanel;
+    [SerializeField] private GameObject controlsPlacePanel;
+    [SerializeField] private GameObject controlsEditPanel;
+    [SerializeField] private CameraController cameraController;
+    [SerializeField] private CharacterController characterController;
+    
 
     private bool _isSelecting;
     private bool _snapEnabled;
     private bool _editingObject;
-    private bool _mouseLocked = true;
+    [SerializeField] private bool _mouseLocked = true;
     private bool _enablePhysicsOnPlace;
+    private bool _cameraControl = true;
     
     private Vector3 _selectedStartPos;
     private Vector3 _selectedStartRot;
@@ -66,6 +76,20 @@ public class GameController : MonoBehaviour {
     }
 
     void Update() {
+        if (Input.GetKeyDown(PlayerType)) {
+            _cameraControl = !_cameraControl;
+            
+            cameraController.enabled = _cameraControl;
+            characterController.enabled = !_cameraControl;
+
+            if (!_cameraControl) {
+                _camera.transform.parent = characterController.transform;
+                _camera.transform.position = characterController.transform.position;
+            }
+
+            cameraInfoPanel.text = _cameraControl ? "Free Cam" : "Player Mode";
+        }
+        
         if (Input.GetKeyDown(OpenSelection)) {
             ToggleSelPanel(!_isSelecting);
             Destroy(heldObject);
@@ -83,17 +107,23 @@ public class GameController : MonoBehaviour {
         }
 
         if (Input.GetKeyDown(FreeMouse)) {
-            Cursor.lockState = _mouseLocked ? CursorLockMode.Confined : CursorLockMode.Locked;
-            Time.timeScale = _mouseLocked ? 0.0f : 1.0f;
-            _mouseLocked = !_mouseLocked;
-            itemInfoPanel.ToggleMouse();
+            SetMouseLockState(!_mouseLocked);
         }
 
         if (heldObject != null) {
+            controlsBasePanel.SetActive(false);
+            controlsPlacePanel.SetActive(true);
+            controlsEditPanel.SetActive(false);
             PlaceNewObject();
         } else if (selectedObject != null) {
+            controlsBasePanel.SetActive(false);
+            controlsPlacePanel.SetActive(false);
+            controlsEditPanel.SetActive(true);
             HandleSelectedObject();
         } else {
+            controlsBasePanel.SetActive(true);
+            controlsPlacePanel.SetActive(false);
+            controlsEditPanel.SetActive(false);
             SelectObject();
         }
     }
@@ -178,7 +208,7 @@ public class GameController : MonoBehaviour {
             selectedObject.GetComponent<PlaceableObject>().SetPlaced(_selectedStartMat, _enablePhysicsOnPlace);
             selectedObject = null;
             itemInfoPanel.gameObject.SetActive(false);
-            Cursor.lockState = CursorLockMode.Locked;
+            SetMouseLockState(true);
         }
     }
 
@@ -272,5 +302,12 @@ public class GameController : MonoBehaviour {
         heldObject = Instantiate(heldIn);
         heldObject.name = heldIn.name;
         selectedObject = null;
+    }
+
+    private void SetMouseLockState(bool locked) {
+        _mouseLocked = locked;
+        Cursor.lockState = _mouseLocked ? CursorLockMode.Locked : CursorLockMode.Confined;
+        Time.timeScale = _mouseLocked ? 1.0f : 0.0f;
+        mouseInfoPanel.text = _mouseLocked ? "Locked" : "Unlocked";
     }
 }

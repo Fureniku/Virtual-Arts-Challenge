@@ -22,12 +22,6 @@ namespace UI {
 		[SerializeField] private TMP_InputField scaleY;
 		[SerializeField] private TMP_InputField scaleZ;
 
-		[SerializeField] private TextMeshProUGUI tip;
-
-		public void Awake() {
-			ToggleMouse();
-		}
-
 		public void IncreaseButton(TMP_InputField value) {
 			value.text = "" + (float.Parse(value.text, CultureInfo.InvariantCulture)+1);
 			UpdateObject();
@@ -47,35 +41,28 @@ namespace UI {
 
 		//Shorthand parsing function
 		private float p(TMP_InputField text) {
-			return float.Parse(text.text, CultureInfo.InvariantCulture);
-		}
-
-		public void ToggleMouse() {
-			if (Cursor.lockState == CursorLockMode.Locked) {
-				tip.text = "Press LEFT ALT to access the mouse";
-			} else {
-				tip.text = "Press ENTER to complete changes";
-			}
+			return float.Parse(text.text);
 		}
 
 		public void UpdatePanel(GameObject go) {
-			title.text = go.name;
-			Vector3 pos = go.transform.position;
-			Vector3 rot = go.transform.eulerAngles;
-			Vector3 scale = go.transform.localScale;
+			if (Time.timeScale > 0.0f) {
+				title.text = go.name;
+				Vector3 pos = go.transform.position;
+				Vector3 rot = go.transform.eulerAngles;
+				Vector3 scale = go.transform.localScale;
 
-			posX.text = "" + pos.x;
-			posY.text = "" + pos.y;
-			posZ.text = "" + pos.z;
+				posX.text = "" + pos.x;
+				posY.text = "" + pos.y;
+				posZ.text = "" + pos.z;
 		
-			rotX.text = "" + rot.x;
-			rotY.text = "" + rot.y;
-			rotZ.text = "" + rot.z;
+				rotX.text = "" + rot.x;
+				rotY.text = "" + rot.y;
+				rotZ.text = "" + rot.z;
 		
-			scaleX.text = "" + scale.x;
-			scaleY.text = "" + scale.y;
-			scaleZ.text = "" + scale.z;
+				scaleX.text = "" + scale.x;
+				scaleY.text = "" + scale.y;
+				scaleZ.text = "" + scale.z;
+			}
 		}
-
 	}
 }

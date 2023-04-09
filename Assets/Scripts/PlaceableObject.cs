@@ -41,6 +41,9 @@ public class PlaceableObject : MonoBehaviour {
 
     public void SetPickedUp(Material material) {
         gameObject.layer = 0;
+        if (gameObject.GetComponent<Rigidbody>() != null) {
+            gameObject.GetComponent<Rigidbody>().isKinematic = true; //Invert, because if physics is false then kinematic is true.
+        }
         if (gameObject.GetComponent<Collider>() != null) {
             gameObject.GetComponent<Collider>().enabled = false;
         }
