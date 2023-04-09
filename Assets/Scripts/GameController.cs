@@ -54,6 +54,7 @@ public class GameController : MonoBehaviour {
     [SerializeField] private GameObject controlsBasePanel;
     [SerializeField] private GameObject controlsPlacePanel;
     [SerializeField] private GameObject controlsEditPanel;
+    [SerializeField] private GameObject pauseMenuPanel;
     [SerializeField] private CameraController cameraController;
     [SerializeField] private CharacterController characterController;
     
@@ -61,9 +62,10 @@ public class GameController : MonoBehaviour {
     private bool _isSelecting;
     private bool _snapEnabled;
     private bool _editingObject;
-    [SerializeField] private bool _mouseLocked = true;
+    private bool _mouseLocked = true;
     private bool _enablePhysicsOnPlace;
     private bool _cameraControl = true;
+    private bool _isPaused;
     
     private Vector3 _selectedStartPos;
     private Vector3 _selectedStartRot;
@@ -76,56 +78,71 @@ public class GameController : MonoBehaviour {
     }
 
     void Update() {
-        if (Input.GetKeyDown(PlayerType)) {
-            _cameraControl = !_cameraControl;
+        if (!_isPaused) {
+            if (Input.GetKeyDown(PlayerType)) {
+                _cameraControl = !_cameraControl;
             
-            cameraController.enabled = _cameraControl;
-            characterController.enabled = !_cameraControl;
+                cameraController.enabled = _cameraControl;
+                characterController.enabled = !_cameraControl;
 
-            if (!_cameraControl) {
-                _camera.transform.parent = characterController.transform;
-                _camera.transform.position = characterController.transform.position;
+                if (!_cameraControl) {
+                    _camera.transform.parent = characterController.transform;
+                    _camera.transform.position = characterController.transform.position;
+                }
+
+                cameraInfoPanel.text = _cameraControl ? "Free Cam" : "Player Mode";
+            }
+        
+            if (Input.GetKeyDown(OpenSelection)) {
+                ToggleSelPanel(!_isSelecting);
+                Destroy(heldObject);
+                heldObject = null;
             }
 
-            cameraInfoPanel.text = _cameraControl ? "Free Cam" : "Player Mode";
-        }
+            if (Input.GetKeyDown(SnapMode)) {
+                _snapEnabled = !_snapEnabled;
+                snapInfoPanel.SetText(_snapEnabled ? "Enabled" : "Disabled");
+            }
         
-        if (Input.GetKeyDown(OpenSelection)) {
-            ToggleSelPanel(!_isSelecting);
-            Destroy(heldObject);
-            heldObject = null;
-        }
+            if (Input.GetKeyDown(TogglePhysics)) {
+                _enablePhysicsOnPlace = !_enablePhysicsOnPlace;
+                physicsInfoPanel.SetText(_enablePhysicsOnPlace ? "Enabled" : "Disabled");
+            }
 
-        if (Input.GetKeyDown(SnapMode)) {
-            _snapEnabled = !_snapEnabled;
-            snapInfoPanel.SetText(_snapEnabled ? "Enabled" : "Disabled");
-        }
-        
-        if (Input.GetKeyDown(TogglePhysics)) {
-            _enablePhysicsOnPlace = !_enablePhysicsOnPlace;
-            physicsInfoPanel.SetText(_enablePhysicsOnPlace ? "Enabled" : "Disabled");
-        }
-
-        if (Input.GetKeyDown(FreeMouse)) {
-            SetMouseLockState(!_mouseLocked);
-        }
-
-        if (heldObject != null) {
-            controlsBasePanel.SetActive(false);
-            controlsPlacePanel.SetActive(true);
-            controlsEditPanel.SetActive(false);
-            PlaceNewObject();
-        } else if (selectedObject != null) {
-            controlsBasePanel.SetActive(false);
-            controlsPlacePanel.SetActive(false);
-            controlsEditPanel.SetActive(true);
-            HandleSelectedObject();
+            if (Input.GetKeyDown(FreeMouse)) {
+                SetMouseLockState(!_mouseLocked);
+            }
+            if (heldObject != null) {
+                controlsBasePanel.SetActive(false);
+                controlsPlacePanel.SetActive(true);
+                controlsEditPanel.SetActive(false);
+                PlaceNewObject();
+            } else if (selectedObject != null) {
+                controlsBasePanel.SetActive(false);
+                controlsPlacePanel.SetActive(false);
+                controlsEditPanel.SetActive(true);
+                HandleSelectedObject();
+            } else {
+                if (Input.GetKeyDown(KeyCode.Escape)) {
+                    TogglePause();
+                }
+                controlsBasePanel.SetActive(true);
+                controlsPlacePanel.SetActive(false);
+                controlsEditPanel.SetActive(false);
+                SelectObject();
+            }
         } else {
-            controlsBasePanel.SetActive(true);
-            controlsPlacePanel.SetActive(false);
-            controlsEditPanel.SetActive(false);
-            SelectObject();
+            if (Input.GetKeyDown(KeyCode.Escape)) {
+                TogglePause();
+            }
         }
+    }
+
+    public void TogglePause() {
+        _isPaused = !_isPaused;
+        pauseMenuPanel.SetActive(_isPaused);
+        Time.timeScale = _isPaused ? 0.0f : 1.0f;
+        Cursor.lockState = _isPaused ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
     //We have an object being held, ready for placement.

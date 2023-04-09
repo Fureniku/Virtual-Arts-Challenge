@@ -6,15 +6,16 @@ public class Piston : MonoBehaviour {
 
     [SerializeField] private int switchTime = 60;
     [SerializeField] private float speed = 3f;
-    [SerializeField] private bool active = true;
+
+    private float _closed = 0.45f;
+    private float _open = 1.3f;
     
     private bool _extended;
     private int _timer;
     private Vector3 target;
 
     void Awake() {
-        Vector3 pos = GetComponent<PlaceableChild>().GetParent().transform.position;
-        target = new Vector3(pos.x, pos.y + 1.3f, pos.z);
+        target = new Vector3(0, _open, 0);
     }
 
     // Update is called once per frame
@@ -25,10 +26,9 @@ public class Piston : MonoBehaviour {
             _timer = 0;
             _extended = !_extended;
 
-            Vector3 pos = GetComponent<PlaceableChild>().GetParent().transform.position;
-            target = new Vector3(pos.x, pos.y + (_extended ? 1.3f : 0.4f), pos.z);
+            target = new Vector3(0, _extended ? _open : _closed, 0);
         }
 
-        transform.position = Vector3.MoveTowards(transform.position, target, speed * Time.deltaTime);
+        transform.localPosition = Vector3.MoveTowards(transform.localPosition, target, speed * Time.deltaTime);
     }
 }
