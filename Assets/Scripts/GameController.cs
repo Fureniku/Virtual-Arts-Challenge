@@ -174,6 +174,7 @@ public class GameController : MonoBehaviour {
                     heldObject = null;
                     _editingObject = false;
                 }
+                itemInfoPanel.gameObject.SetActive(false);
             }
         }
 
